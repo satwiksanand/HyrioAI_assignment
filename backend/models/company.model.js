@@ -12,10 +12,13 @@ const companySchema = new mongoose.Schema({
   companyPassword: {
     type: String,
     required: true,
+    minlength: 6,
   },
   companyContact: {
     type: String,
     required: true,
+    minlength: 10,
+    maxlength: 10,
   },
 });
 

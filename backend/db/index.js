@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const connectionString = process.env.CONNECTION_STRING;
-const companySchema = require("../models/company.model");
+const { companySchema } = require("../models/company.model");
 
 mongoose
   .connect(connectionString)
