@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const authRouter = Router();
-const { customError } = require("../utils/customError");
+const customError = require("../utils/customError");
 const { signup, signin } = require("../controllers/auth.controller");
 //here there will be some kind of controller to manage authentication;
 //let us first connect with the database then we will think about the contolere.
