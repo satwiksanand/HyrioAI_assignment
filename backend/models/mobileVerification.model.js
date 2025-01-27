@@ -7,7 +7,7 @@ const mobileVerificationSchema = new mongoose.Schema({
     required: true,
   },
   otp: {
-    type: Number,
+    type: String,
     required: true,
   },
   expiredAt: {

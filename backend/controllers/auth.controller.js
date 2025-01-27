@@ -25,7 +25,7 @@ const signinSchema = zod.object({
 
 const verifyOTPSchema = zod.object({
   companyId: zod.string().nonempty(),
-  otp: zod.number(),
+  otp: zod.string().min(4).max(4),
 });
 
 const signup = async (req, res, next) => {
@@ -65,9 +65,10 @@ const signup = async (req, res, next) => {
         expiredAt: new Date(Date.now() + 60 * 60 * 1000),
       };
       await mobileVerificationModel.create(newMobileVerification);
-      return res
-        .status(201)
-        .json({ message: "Company registered successfully!" });
+      return res.status(201).json({
+        message: "Company registered successfully!",
+        companyId: newCompany._id,
+      });
     } else {
       throw customError(400, "Email already exists!");
     }
@@ -165,6 +166,7 @@ const verifyMobile = async (req, res, next) => {
     if (!verifyOTPSchema.safeParse(details).success) {
       throw customError(400, "Invalid details!");
     }
+    console.log(details);
     const mobileVerification = await mobileVerificationModel.findOne({
       companyId: details.companyId,
       otp: details.otp,
