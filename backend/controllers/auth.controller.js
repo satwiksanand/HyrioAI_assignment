@@ -1,16 +1,21 @@
 const customError = require("../utils/customError");
 const zod = require("zod");
 const bcryptjs = require("bcryptjs");
-const { companyModel, emailVerificationModel } = require("../db/index");
+const {
+  companyModel,
+  emailVerificationModel,
+  mobileVerificationModel,
+} = require("../db/index");
 const jwt = require("jsonwebtoken");
 const sendOtpEmail = require("../utils/requestEmailOTP");
+const sendMobileOTP = require("../utils/requestMobileOTP");
 const secretKey = process.env.SECRET_KEY;
 
 const signupSchema = zod.object({
   companyName: zod.string().nonempty(),
   companyEmail: zod.string().email(),
   companyPassword: zod.string().min(6),
-  companyContact: zod.string().min(10).max(10),
+  companyContact: zod.string().min(10),
 });
 
 const signinSchema = zod.object({
@@ -18,7 +23,7 @@ const signinSchema = zod.object({
   companyPassword: zod.string().min(6),
 });
 
-const verifyEmailSchema = zod.object({
+const verifyOTPSchema = zod.object({
   companyId: zod.string().nonempty(),
   otp: zod.number(),
 });
@@ -51,7 +56,15 @@ const signup = async (req, res, next) => {
         expiredAt: new Date(Date.now() + 60 * 60 * 1000),
       };
       await emailVerificationModel.create(newEmailVerification);
+      //mobile otp verification code.
       const mobileOtp = Math.floor(1000 + Math.random() * 9000);
+      await sendMobileOTP(details.companyContact, mobileOtp);
+      const newMobileVerification = {
+        companyId: newCompany._id,
+        otp: mobileOtp,
+        expiredAt: new Date(Date.now() + 60 * 60 * 1000),
+      };
+      await mobileVerificationModel.create(newMobileVerification);
       return res
         .status(201)
         .json({ message: "Company registered successfully!" });
@@ -119,7 +132,7 @@ const verifyEmail = async (req, res, next) => {
     otp: req.body.otp,
   };
   try {
-    if (!verifyEmailSchema.safeParse(details).success) {
+    if (!verifyOTPSchema.safeParse(details).success) {
       throw customError(400, "Invalid details!");
     }
     const emailVerification = await emailVerificationModel.findOne({
@@ -129,14 +142,44 @@ const verifyEmail = async (req, res, next) => {
     if (!emailVerification) {
       throw customError(400, "Invalid OTP!");
     }
+    await emailVerificationModel.deleteOne({ _id: emailVerification._id });
     if (emailVerification.expiredAt < new Date()) {
       throw customError(400, "OTP has expired!");
     }
-    await emailVerificationModel.deleteOne({ _id: emailVerification._id });
     await companyModel.findByIdAndUpdate(details.companyId, {
       emailVerified: true,
     });
     return res.status(200).json({ message: "Email verified successfully!" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyMobile = async (req, res, next) => {
+  //again i am expecting the company id in the request body change it as per ui later.
+  const details = {
+    companyId: req.body.companyId,
+    otp: req.body.otp,
+  };
+  try {
+    if (!verifyOTPSchema.safeParse(details).success) {
+      throw customError(400, "Invalid details!");
+    }
+    const mobileVerification = await mobileVerificationModel.findOne({
+      companyId: details.companyId,
+      otp: details.otp,
+    });
+    if (!mobileVerification) {
+      throw customError(400, "Invalid OTP!");
+    }
+    await mobileVerificationModel.deleteOne({ _id: mobileVerification._id });
+    if (mobileVerification.expiredAt < new Date()) {
+      throw customError(400, "OTP has expired!");
+    }
+    await companyModel.findByIdAndUpdate(details.companyId, {
+      mobileVerified: true,
+    });
+    return res.status(200).json({ message: "Mobile verified successfully!" });
   } catch (err) {
     next(err);
   }
@@ -147,4 +190,5 @@ module.exports = {
   signin,
   signout,
   verifyEmail,
+  verifyMobile,
 };

@@ -6,6 +6,7 @@ const {
   signin,
   signout,
   verifyEmail,
+  verifyMobile,
 } = require("../controllers/auth.controller");
 const validateCompany = require("../middlewares/validateCompany.middleware");
 //here there will be some kind of controller to manage authentication;
@@ -15,6 +16,7 @@ authRouter.post("/signup", signup);
 authRouter.post("/signin", signin);
 authRouter.post("/signout", validateCompany, signout);
 authRouter.post("/verifyEmail", verifyEmail);
+authRouter.post("/verifyMobile", verifyMobile);
 
 authRouter.use((req, res, next) => {
   try {
