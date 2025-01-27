@@ -1,8 +1,9 @@
 const customError = require("../utils/customError");
 const zod = require("zod");
 const bcryptjs = require("bcryptjs");
-const { companyModel } = require("../db/index");
+const { companyModel, emailVerificationModel } = require("../db/index");
 const jwt = require("jsonwebtoken");
+const sendOtpEmail = require("../utils/requestEmailOTP");
 const secretKey = process.env.SECRET_KEY;
 
 const signupSchema = zod.object({
@@ -34,7 +35,18 @@ const signup = async (req, res, next) => {
     if (!company) {
       const hashedPassword = bcryptjs.hashSync(details.companyPassword, 10);
       details.companyPassword = hashedPassword;
-      await companyModel.create(details);
+      const newCompany = await companyModel.create(details);
+      //i want to send the email otp to the user and the mobile otp to the user
+      //use the utility function to send email verification otp
+      const emailOtp = Math.floor(1000 + Math.random() * 9000);
+      await sendOtpEmail(details.companyEmail, emailOtp);
+      const newEmailVerification = {
+        companyId: newCompany._id,
+        otp: emailOtp,
+        expiredAt: new Date(Date.now() + 60 * 60 * 1000),
+      };
+      await emailVerificationModel.create(newEmailVerification);
+      const mobileOtp = Math.floor(1000 + Math.random() * 9000);
       return res
         .status(201)
         .json({ message: "Company registered successfully!" });
