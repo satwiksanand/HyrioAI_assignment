@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 const customError = require("../utils/customError");
+const { companyModel } = require("../db");
 
-const validateCompany = (req, res, next) => {
+const validateCompany = async (req, res, next) => {
   const token = req.cookies.access_token;
   try {
     if (!token) {
@@ -12,7 +13,10 @@ const validateCompany = (req, res, next) => {
       throw customError(411, "Invalid Token");
     }
     //i also want to check if there is any pending verification liek email or mobile
-    if (!decodedCompany.emailVerified || !decodedCompany.mobileVerified) {
+    //if the token is not invalid find the company and check for the latest data of verification
+    const company = await companyModel.findById(decodedCompany.companyId);
+    req.body.companyId = decodedCompany.companyId;
+    if (!company.emailVerified || !company.mobileVerified) {
       throw customError(411, "Email or Mobile not verified yet!");
     }
     req.company = decodedCompany;

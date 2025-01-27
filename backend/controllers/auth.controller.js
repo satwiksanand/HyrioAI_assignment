@@ -99,7 +99,10 @@ const signin = async (req, res, next) => {
     if (!isMatch) {
       throw customError(400, "Invalid email or password!");
     }
-    const token = jwt.sign({ companyEmail: company.companyEmail }, secretKey);
+    const token = jwt.sign(
+      { companyEmail: company.companyEmail, companyId: company._id },
+      secretKey
+    );
     return res
       .status(200)
       .cookie("access_token", token, {

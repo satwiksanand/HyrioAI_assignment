@@ -34,7 +34,7 @@ const createJob = async (req, res, next) => {
     }
     //let's say one company can post many jobs with the same title and description for now.
     const newJob = new jobModel({
-      author: req.company._id,
+      author: req.body.companyId,
       title: job.title,
       description: job.description,
       experience: job.experience,
@@ -44,6 +44,16 @@ const createJob = async (req, res, next) => {
     return res.status(201).json({
       message: "job created successfully!",
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getAllJobs = async (req, res, next) => {
+  const companyId = req.body.companyId;
+  try {
+    const job = await jobModel.find({ author: companyId });
+    return res.status(200).json(job);
   } catch (err) {
     next(err);
   }
@@ -120,4 +130,5 @@ module.exports = {
   createJob,
   addCandidate,
   sendUpdate,
+  getAllJobs,
 };

@@ -8,6 +8,7 @@ import Home from "./Pages/Home";
 import VerifyEmail from "./Pages/VerifyEmail";
 import VerifyMobile from "./Pages/VerifyMobile";
 import { ToastContainer } from "react-toastify";
+import CreateJob from "./Pages/CreateJob";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
           {
             path: "/",
             element: <Home />,
+          },
+          {
+            path: "/createJob",
+            element: <CreateJob />,
           },
         ],
       },
