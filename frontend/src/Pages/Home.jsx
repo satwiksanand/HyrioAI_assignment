@@ -3,6 +3,7 @@ import JobCard from "../components/JobCard";
 import { Link } from "react-router-dom";
 import { addCandidate, getAllJobs, sendUpdate } from "../slices/jobSlice";
 import { useState } from "react";
+import { signOut } from "../slices/userSlice";
 
 function Home() {
   const jobs = useSelector((state) => state.jobs.allJobs);
@@ -16,6 +17,10 @@ function Home() {
 
   function handleSubmit() {
     dispatch(getAllJobs());
+  }
+
+  function handleSignOut() {
+    dispatch(signOut());
   }
 
   function handleAddApplicant(jobId) {
@@ -81,6 +86,12 @@ function Home() {
             onClick={handleSubmit}
           >
             Refresh
+          </button>
+          <button
+            className="border-1 rounded-md bg-blue-500 text-white p-2 cursor-pointer"
+            onClick={handleSignOut}
+          >
+            SignOut
           </button>
         </div>
       </div>
