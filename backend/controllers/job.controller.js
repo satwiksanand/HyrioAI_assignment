@@ -1,6 +1,7 @@
 const { jobModel } = require("../db/index");
 const customError = require("../utils/customError");
 const zod = require("zod");
+const nodemailer = require("nodemailer");
 
 const jobSchema = zod.object({
   title: zod.string().nonempty(),
@@ -11,6 +12,12 @@ const jobSchema = zod.object({
 
 const addCandidateSchema = zod.object({
   candidateEmail: zod.string().email(),
+  jobId: zod.string().nonempty(),
+});
+
+const sendUdpateSchema = zod.object({
+  subject: zod.string().nonempty(),
+  text: zod.string().nonempty(),
   jobId: zod.string().nonempty(),
 });
 
@@ -66,7 +73,51 @@ const addCandidate = async (req, res, next) => {
   }
 };
 
+// this function is meant to send email updates to the user.
+
+const sendUpdate = async (req, res, next) => {
+  const transporter = nodemailer.createTransport({
+    //the organization will send the email of company behalf.
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.ORG_EMAIL,
+      pass: process.env.ORG_API_KEY,
+    },
+  });
+  //email should contain sender information and job details.
+  const details = {
+    subject: req.body.subject,
+    text: req.body.text,
+    jobId: req.body.jobId,
+  };
+  try {
+    //again let's say i am expecting the jobID of the job, for now let's say that the user is sending it in body.
+    if (!sendUdpateSchema.safeParse(details).success) {
+      throw customError(400, "Invalid Details");
+    }
+    const job = await jobModel.findById(details.jobId);
+    if (!job) {
+      throw customError(401, "job doesn't exist");
+    }
+    const candidatesEmail = job.candidate.join(", ");
+    await transporter.sendMail({
+      from: req.company.companyEmail, //you might not want to share the company email that the company used for registration, but we have to share the sender details so let it be
+      to: candidatesEmail,
+      subject: `${details.subject} for ${job.title}`, //sharing job details
+      text: details.text,
+    });
+    return res.status(200).send({
+      message: "Email sent successfully!",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createJob,
   addCandidate,
+  sendUpdate,
 };
