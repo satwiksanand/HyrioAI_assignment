@@ -55,3 +55,7 @@ for frontend
    ```
    npm run dev
    ```
+
+### Live Link
+
+You can access the live version of the project [here](https://hyrioaifrontend-dzvn8ybh0-satwik-sanands-projects.vercel.app).
