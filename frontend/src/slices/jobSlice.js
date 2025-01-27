@@ -27,6 +27,34 @@ export const createJob = createAsyncThunk(
     }
   }
 );
+export const addCandidate = createAsyncThunk(
+  "jobs/addCandidate",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/v1/jobs/addCandidate",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include",
+        }
+      );
+      const finalResponse = await response.json();
+      console.log(finalResponse);
+      if (!response.ok) {
+        toast.error("candidate could not be added");
+        return rejectWithValue(
+          finalResponse.message || "something wrong with the server!"
+        );
+      }
+      toast.success("candidate added successfully");
+    } catch (err) {
+      toast.error("something up with the server!");
+      return rejectWithValue(err.message || "something wrong with the server!");
+    }
+  }
+);
 
 export const getAllJobs = createAsyncThunk(
   "jobs/getAllJobs",
