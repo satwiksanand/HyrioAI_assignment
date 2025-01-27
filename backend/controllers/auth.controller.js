@@ -85,7 +85,18 @@ const signin = async (req, res, next) => {
   }
 };
 
+const signout = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token").json({
+      message: "signout successfull!",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   signup,
   signin,
+  signout,
 };
