@@ -18,6 +18,11 @@ const signinSchema = zod.object({
   companyPassword: zod.string().min(6),
 });
 
+const verifyEmailSchema = zod.object({
+  companyId: zod.string().nonempty(),
+  otp: zod.number(),
+});
+
 const signup = async (req, res, next) => {
   const details = {
     companyName: req.body.companyName,
@@ -107,8 +112,39 @@ const signout = async (req, res, next) => {
   }
 };
 
+const verifyEmail = async (req, res, next) => {
+  //again i am expecting the company id in the request body change it as per ui later.
+  const details = {
+    companyId: req.body.companyId,
+    otp: req.body.otp,
+  };
+  try {
+    if (!verifyEmailSchema.safeParse(details).success) {
+      throw customError(400, "Invalid details!");
+    }
+    const emailVerification = await emailVerificationModel.findOne({
+      companyId: details.companyId,
+      otp: details.otp,
+    });
+    if (!emailVerification) {
+      throw customError(400, "Invalid OTP!");
+    }
+    if (emailVerification.expiredAt < new Date()) {
+      throw customError(400, "OTP has expired!");
+    }
+    await emailVerificationModel.deleteOne({ _id: emailVerification._id });
+    await companyModel.findByIdAndUpdate(details.companyId, {
+      emailVerified: true,
+    });
+    return res.status(200).json({ message: "Email verified successfully!" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   signup,
   signin,
   signout,
+  verifyEmail,
 };

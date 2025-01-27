@@ -11,6 +11,10 @@ const validateCompany = (req, res, next) => {
     if (!decodedCompany) {
       throw customError(411, "Invalid Token");
     }
+    //i also want to check if there is any pending verification liek email or mobile
+    if (!decodedCompany.emailVerified || !decodedCompany.mobileVerified) {
+      throw customError(411, "Email or Mobile not verified yet!");
+    }
     req.company = decodedCompany;
     next();
   } catch (err) {

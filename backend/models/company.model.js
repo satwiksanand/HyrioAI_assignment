@@ -20,6 +20,14 @@ const companySchema = new mongoose.Schema({
     minlength: 10,
     maxlength: 10,
   },
+  emailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  mobileVerified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = {
