@@ -1,15 +1,18 @@
 import { useDispatch, useSelector } from "react-redux";
 import JobCard from "../components/JobCard";
 import { Link } from "react-router-dom";
-import { addCandidate, getAllJobs } from "../slices/jobSlice";
+import { addCandidate, getAllJobs, sendUpdate } from "../slices/jobSlice";
 import { useState } from "react";
 
 function Home() {
   const jobs = useSelector((state) => state.jobs.allJobs);
   const dispatch = useDispatch();
-  const [modalOpen, setModalOpen] = useState(false);
+  const [addApplicantModalOpen, setAddApplicantModalOpen] = useState(false);
+  const [emailAllModalOpen, setEmailAllModalOpen] = useState(false);
   const [currentJobId, setCurrentJobId] = useState(null);
   const [email, setEmail] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailText, setEmailText] = useState("");
 
   function handleSubmit() {
     dispatch(getAllJobs());
@@ -17,22 +20,47 @@ function Home() {
 
   function handleAddApplicant(jobId) {
     setCurrentJobId(jobId);
-    setModalOpen(true);
+    setAddApplicantModalOpen(true);
+  }
+
+  function handleEmailAll(jobId) {
+    setCurrentJobId(jobId);
+    setEmailAllModalOpen(true);
   }
 
   function handleModalSubmit() {
     if (email.trim()) {
       dispatch(addCandidate({ jobId: currentJobId, candidateEmail: email }));
-      setModalOpen(false);
+      setAddApplicantModalOpen(false);
       setEmail("");
     } else {
       alert("Please enter a valid email address.");
     }
   }
 
-  function closeModal() {
-    setModalOpen(false);
+  function handleEmailAllSubmit() {
+    if (emailSubject.trim() && emailText.trim()) {
+      // Dispatch an action to send email to all candidates (replace this with your actual implementation)
+      const data = {
+        jobId: currentJobId,
+        subject: emailSubject,
+        text: emailText,
+      };
+      dispatch(sendUpdate(data));
+      setEmailAllModalOpen(false);
+      setEmailSubject("");
+      setEmailText("");
+    } else {
+      alert("Please fill in both Subject and Text fields.");
+    }
+  }
+
+  function closeModals() {
+    setAddApplicantModalOpen(false);
+    setEmailAllModalOpen(false);
     setEmail("");
+    setEmailSubject("");
+    setEmailText("");
   }
 
   return (
@@ -67,6 +95,7 @@ function Home() {
               numberOfApplicants={job.candidate.length}
               key={job._id}
               onAddApplicant={() => handleAddApplicant(job._id)}
+              onEmailAll={() => handleEmailAll(job._id)}
             />
           ))
         ) : (
@@ -74,7 +103,8 @@ function Home() {
         )}
       </div>
 
-      {modalOpen && (
+      {/* Add Applicant Modal */}
+      {addApplicantModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h3 className="text-xl font-bold mb-4">Add Applicant</h3>
@@ -88,7 +118,7 @@ function Home() {
             <div className="flex justify-end gap-2">
               <button
                 className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
-                onClick={closeModal}
+                onClick={closeModals}
               >
                 Cancel
               </button>
@@ -97,6 +127,45 @@ function Home() {
                 onClick={handleModalSubmit}
               >
                 Add Applicant
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email All Candidates Modal */}
+      {emailAllModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold mb-4">
+              Send Email to All Candidates
+            </h3>
+            <input
+              type="text"
+              placeholder="Enter email subject"
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+              className="border border-gray-300 rounded-md p-2 w-full mb-4"
+            />
+            <textarea
+              placeholder="Enter email text"
+              value={emailText}
+              onChange={(e) => setEmailText(e.target.value)}
+              className="border border-gray-300 rounded-md p-2 w-full mb-4"
+              rows={4}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+                onClick={closeModals}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleEmailAllSubmit}
+              >
+                Send Email
               </button>
             </div>
           </div>

@@ -5,6 +5,7 @@ const JobCard = ({
   endDate,
   numberOfApplicants,
   onAddApplicant,
+  onEmailAll,
 }) => {
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-2xl p-4 bg-white">
@@ -29,8 +30,11 @@ const JobCard = ({
         >
           Add Applicant
         </button>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          Send Update
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={onEmailAll}
+        >
+          Send Email
         </button>
       </div>
     </div>

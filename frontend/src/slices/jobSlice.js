@@ -55,6 +55,34 @@ export const addCandidate = createAsyncThunk(
     }
   }
 );
+export const sendUpdate = createAsyncThunk(
+  "jobs/sendUpdate",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/v1/jobs/sendUpdate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include",
+        }
+      );
+      const finalResponse = await response.json();
+      console.log(finalResponse);
+      if (!response.ok) {
+        toast.error("mail could not be sent");
+        return rejectWithValue(
+          finalResponse.message || "something wrong with the server!"
+        );
+      }
+      toast.success("mail sent successfully");
+    } catch (err) {
+      toast.error("something up with the server!");
+      return rejectWithValue(err.message || "something wrong with the server!");
+    }
+  }
+);
 
 export const getAllJobs = createAsyncThunk(
   "jobs/getAllJobs",
